@@ -1,0 +1,13 @@
+Packages
+Hardware/*.s#*
+Hardware/*.b#*
+Software/.metadata
+Software/RemoteSystemsTempFiles
+Software/Display/build
+.cproject
+.project
+.settings
+.mxproject
+
+
+
