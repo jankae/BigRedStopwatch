@@ -36,7 +36,8 @@ Drivers/STM32F0xx_HAL_Driver \
 Application/MAKEFILE \
 Drivers \
 Drivers/CMSIS \
-Display
+Display \
+Radio
 
 # firmware library path
 PERIFLIB_PATH = 
@@ -78,7 +79,8 @@ Src/spi.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c \
 Src/usart.c \
 Src/tim.c \
-Display/Display.c
+Display/Display.c \
+Radio/radio.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -139,7 +141,8 @@ C_INCLUDES =  \
 -IDrivers/STM32F0xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
 -IDrivers/CMSIS/Include \
--IDisplay
+-IDisplay \
+-IRadio
 
 
 # compile gcc flags

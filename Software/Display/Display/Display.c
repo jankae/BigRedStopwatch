@@ -2,6 +2,7 @@
 
 #include "main.h"
 #include "gpio.h"
+#include <string.h>
 
 #define DISPLAY_NUM_DIGITS		4
 
@@ -98,6 +99,7 @@ static inline void allDigitsOff(void) {
 
 void Display_Init(void) {
 	currentDigit = 0;
+	memset(screen, 0, sizeof(screen));
 	allDigitsOff();
 }
 
@@ -127,10 +129,7 @@ void Display_SetNumber(uint32_t num) {
 	/* Find dot position */
 	if (num >= 10000000) {
 		/* number is too big to be displayed */
-		screen[0] = fontNumbers[9];
-		screen[1] = fontNumbers[9];
-		screen[2] = fontNumbers[9];
-		screen[3] = fontNumbers[9];
+		memset(screen, fontNumbers[9], sizeof(screen));
 		return;
 	} else if (num >= 1000000) {
 		/* No dot */
@@ -147,10 +146,10 @@ void Display_SetNumber(uint32_t num) {
 		divider = 1;
 	}
 	num /= divider;
-	screen[0] = fontNumbers(num / 1000);
-	screen[1] = fontNumbers((num / 100) % 10);
-	screen[2] = fontNumbers((num / 10) % 10);
-	screen[3] = fontNumbers(num % 10);
+	screen[0] = fontNumbers[num / 1000];
+	screen[1] = fontNumbers[(num / 100) % 10];
+	screen[2] = fontNumbers[(num / 10) % 10];
+	screen[3] = fontNumbers[num % 10];
 	if (dot) {
 		/* Add dot at the dot position */
 		screen[dot] |= 0x80;
