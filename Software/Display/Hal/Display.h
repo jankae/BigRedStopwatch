@@ -1,5 +1,5 @@
-#ifndef DISPLAY_DISPLAY_H_
-#define DISPLAY_DISPLAY_H_
+#ifndef HAL_DISPLAY_H_
+#define HAL_DISPLAY_H_
 
 #include <stdint.h>
 
@@ -14,7 +14,7 @@ void Display_Init(void);
  * If a character can't be displayed due to 7-segment limitations,
  * its space will be left blank
  *
- * @param s String to display, MUST always be of lengh 4
+ * @param s String to display, MUST always be of length 4
  */
 void Display_SetScreen(char *s);
 
@@ -36,4 +36,4 @@ void Display_SetNumber(uint32_t num);
  */
 void Display_Update(void);
 
-#endif /* DISPLAY_DISPLAY_H_ */
+#endif /* HAL_DISPLAY_H_ */

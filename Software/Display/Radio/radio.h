@@ -23,7 +23,7 @@ typedef struct {
  * the function pointer radio->received must be set by the
  * application
  */
-radio_driver_t *radio = NULL;
+extern radio_driver_t *radio;
 
 /**
  * @brief Initializes the connected radio

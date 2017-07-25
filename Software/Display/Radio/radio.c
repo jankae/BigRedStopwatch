@@ -2,6 +2,8 @@
 
 #define RADIO_NUM_DRIVERS	0
 
+radio_driver_t *radio = NULL;
+
 radio_driver_t * const driverList[RADIO_NUM_DRIVERS] = {
 		/* Add additional radio drivers here */
 };

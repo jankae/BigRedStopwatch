@@ -1,6 +1,8 @@
 #include "stopwatch.h"
 #include <stdint.h>
 
+#include "radio.h"
+
 #define HISTORY_ENTRIES		10
 
 uint8_t historyLength;
@@ -30,7 +32,7 @@ static void resetHistory(void) {
 }
 
 int Stopwatch_Init() {
-	if(radio) {
+	if (radio) {
 		/* Set the receive callback */
 		radio->received = receivedData;
 	}
