@@ -46,14 +46,12 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define DIGIT2_Pin GPIO_PIN_13
+#define DIGIT1_Pin GPIO_PIN_13
+#define DIGIT1_GPIO_Port GPIOC
+#define DIGIT2_Pin GPIO_PIN_14
 #define DIGIT2_GPIO_Port GPIOC
-#define DIGIT3_Pin GPIO_PIN_14
+#define DIGIT3_Pin GPIO_PIN_15
 #define DIGIT3_GPIO_Port GPIOC
-#define DIGIT4_Pin GPIO_PIN_15
-#define DIGIT4_GPIO_Port GPIOC
-#define DIGIT1_Pin GPIO_PIN_0
-#define DIGIT1_GPIO_Port GPIOF
 #define BATTERY_Pin GPIO_PIN_0
 #define BATTERY_GPIO_Port GPIOA
 #define SEGMENT_G_Pin GPIO_PIN_1
@@ -98,6 +96,8 @@
 #define NRF24_IRQ_GPIO_Port GPIOA
 #define CS_RFM69_Pin GPIO_PIN_7
 #define CS_RFM69_GPIO_Port GPIOF
+#define DIGIT4_Pin GPIO_PIN_9
+#define DIGIT4_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

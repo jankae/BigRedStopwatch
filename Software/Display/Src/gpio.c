@@ -69,31 +69,25 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DIGIT2_Pin|DIGIT3_Pin|DIGIT4_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, DIGIT1_Pin|CS_RFM69_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, DIGIT1_Pin|DIGIT2_Pin|DIGIT3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, SEGMENT_G_Pin|SEGMENT_F_Pin|SEGMENT_A_Pin|SEGMENT_B_Pin 
                           |CS_NRF24_Pin|NRF24_CE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SEGMENT_DOT_Pin|SEGMENT_C_Pin|SEGMENT_D_Pin|SEGMENT_E_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, SEGMENT_DOT_Pin|SEGMENT_C_Pin|SEGMENT_D_Pin|SEGMENT_E_Pin 
+                          |DIGIT4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CS_RFM69_GPIO_Port, CS_RFM69_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = DIGIT2_Pin|DIGIT3_Pin|DIGIT4_Pin;
+  GPIO_InitStruct.Pin = DIGIT1_Pin|DIGIT2_Pin|DIGIT3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = DIGIT1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(DIGIT1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PAPin PAPin PAPin PAPin 
                            PAPin */
@@ -112,8 +106,10 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = SEGMENT_DOT_Pin|SEGMENT_C_Pin|SEGMENT_D_Pin|SEGMENT_E_Pin;
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
+                           PBPin */
+  GPIO_InitStruct.Pin = SEGMENT_DOT_Pin|SEGMENT_C_Pin|SEGMENT_D_Pin|SEGMENT_E_Pin 
+                          |DIGIT4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
