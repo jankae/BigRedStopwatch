@@ -4,6 +4,7 @@ Hardware/*.b#*
 Software/.metadata
 Software/RemoteSystemsTempFiles
 Software/Display/build
+Software/RadioTest
 .cproject
 .project
 .settings
