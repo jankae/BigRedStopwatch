@@ -30,15 +30,11 @@ OPT = -O3
 #######################################
 # source path
 SOURCES_DIR =  \
-Application \
-Application/User \
-Drivers/STM32F0xx_HAL_Driver \
-Application/MAKEFILE \
-Drivers \
-Drivers/CMSIS \
+Drivers/STM32F0xx_HAL_Driver/Src \
 Hal \
 Radio \
-Stopwatch
+Stopwatch \
+Src
 
 # firmware library path
 PERIFLIB_PATH = 
@@ -50,40 +46,7 @@ BUILD_DIR = build
 # source
 ######################################
 # C sources
-C_SOURCES =  \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash_ex.c \
-Src/system_stm32f0xx.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.c \
-Src/stm32f0xx_hal_msp.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c.c \
-Src/main.c \
-Src/stm32f0xx_it.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_cortex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_gpio.c \
-Src/gpio.c \
-Src/adc.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_adc.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_adc_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_spi.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_spi_ex.c \
-Src/spi.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c \
-Src/usart.c \
-Src/tim.c \
-Hal/Display.c \
-Hal/Switches.c \
-Radio/radio.c \
-Stopwatch/stopwatch.c
+C_SOURCES := $(foreach sdir,$(SOURCES_DIR),$(wildcard $(sdir)/*.c))
 
 # ASM sources
 ASM_SOURCES =  \

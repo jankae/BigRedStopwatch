@@ -1,9 +1,11 @@
-Packages
+# Eagle backup files
 Hardware/*.s#*
 Hardware/*.b#*
+*build
+# Eclipse project and workspace files
+Packages
 Software/.metadata
 Software/RemoteSystemsTempFiles
-Software/Display/build
 Software/RadioTest
 .cproject
 .project
