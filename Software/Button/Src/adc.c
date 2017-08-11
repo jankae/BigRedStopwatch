@@ -76,17 +76,9 @@ void MX_ADC_Init(void)
 
     /**Configure for the selected ADC regular channel to be converted. 
     */
-  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Channel = ADC_CHANNEL_9;
   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-    /**Configure for the selected ADC regular channel to be converted. 
-    */
-  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.SamplingTime = ADC_SAMPLETIME_71CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -107,13 +99,12 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC1_CLK_ENABLE();
   
     /**ADC GPIO Configuration    
-    PA0     ------> ADC_IN0
-    PA2     ------> ADC_IN2 
+    PB1     ------> ADC_IN9 
     */
-    GPIO_InitStruct.Pin = BATTERY_SENSE_Pin|BOOST_SENSE_Pin;
+    GPIO_InitStruct.Pin = BATTERY_SENSE_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(BATTERY_SENSE_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
@@ -133,10 +124,9 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC1_CLK_DISABLE();
   
     /**ADC GPIO Configuration    
-    PA0     ------> ADC_IN0
-    PA2     ------> ADC_IN2 
+    PB1     ------> ADC_IN9 
     */
-    HAL_GPIO_DeInit(GPIOA, BATTERY_SENSE_Pin|BOOST_SENSE_Pin);
+    HAL_GPIO_DeInit(BATTERY_SENSE_GPIO_Port, BATTERY_SENSE_Pin);
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
