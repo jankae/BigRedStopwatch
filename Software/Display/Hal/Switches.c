@@ -56,10 +56,10 @@ void Switches_Update(void) {
  * @param s Status of the switch to check
  * @return Time in ms since the switch was pressed, 0 if not pressed
  */
-uint32_t Switch_Pressed(SwitchState_t *s) {
-	if (s->pressed) {
+uint32_t Switch_Pressed(Switch_t s) {
+	if (switches[s].pressed) {
 		/* calculate the time */
-		return HAL_GetTick() - s->changeTimestamp;
+		return HAL_GetTick() - switches[s].changeTimestamp;
 	} else {
 		/* currently not pressed */
 		return 0;
@@ -72,8 +72,8 @@ uint32_t Switch_Pressed(SwitchState_t *s) {
  * @param s Status of the switch to check
  * @return Time in ms the switch was pressed for, 0 if it has not been clicked
  */
-uint32_t Switch_Clicked(SwitchState_t *s) {
-	uint32_t buf = s->lastPressLength;
-	s->lastPressLength = 0;
+uint32_t Switch_Clicked(Switch_t s) {
+	uint32_t buf = switches[s].lastPressLength;
+	switches[s].lastPressLength = 0;
 	return buf;
 }

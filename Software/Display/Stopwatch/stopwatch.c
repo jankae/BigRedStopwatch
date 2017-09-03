@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "radio.h"
+#include "Switches.h"
 
 #define HISTORY_ENTRIES		10
 
@@ -17,11 +18,23 @@ typedef enum {
 	WATCH_DISPLAY,			/* Still displaying time, transition to running if start is received */
 } Stopwatch_state_t;
 
+typedef enum {
+	EVENT_START,
+	EVENT_STOP,
+} Event_t;
+
 Stopwatch_state_t state;
 uint32_t transitionTimestamp;
 
 static void receivedData(uint8_t *payload, uint16_t length) {
 
+}
+
+static uint32_t eventOccured(Event_t event)
+{
+	switch(event)
+	{
+	}
 }
 
 static void resetHistory(void) {
