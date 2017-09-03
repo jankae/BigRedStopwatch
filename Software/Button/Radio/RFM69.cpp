@@ -223,14 +223,15 @@ int8_t RFM69::getRSSI() {
 
 uint32_t RFM69::getRandom() {
 	Mode old = mode;
-	setMode(Mode::Standby);
+	setMode(Mode::Receive);
 	uint32_t rnd = 0;
 	uint8_t i;
 	for (i = 0; i < 32; i++) {
 		rnd <<= 1;
-		writeSubregister(SR_RSSI_START, 1);
-		while(!readSubregister(SR_RSSI_DONE));
-		rnd |= readRegister(RG_RSSI_VALUE) & 0x01;
+		uint8_t rssi = readRegister(RG_RSSI_VALUE);
+		rnd |= rssi & 0x01;
+		/* Wait for the next measurement to be available */
+		while(rssi == readRegister(RG_RSSI_VALUE));
 	}
 	setMode(old);
 	return rnd;

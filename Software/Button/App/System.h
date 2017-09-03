@@ -14,3 +14,4 @@ void Shutdown();
 void Shutdown(ErrorCode errorCode);
 
 uint16_t getBatteryVoltage();
+

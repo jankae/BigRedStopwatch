@@ -1,5 +1,6 @@
 #include "App.h"
 
+#include <cstdlib>
 #include "RFM69.h"
 #include "stm32f0xx_hal.h"
 #include "System.h"
@@ -28,6 +29,10 @@ void App_Start()
 
 	radio.setMode(RFM69::Mode::Receive);
 
+	srand(radio.getRandom());
+	/* generate random ID to identify correct Ack */
+	uint32_t ButtonID = rand();
+
 	if(getBatteryVoltage() < 3500) {
 		/* Battery is low, abort */
 		Shutdown(ErrBatteryLow);
@@ -37,19 +42,20 @@ void App_Start()
 	uint8_t remainingAttempts = 5;
 	while(remainingAttempts && !ackReceived) {
 		/* Create button packet */
-		constexpr RadioPacket payload = {.type = BUTTON_TYPE, .ID = BUTTON_ID};
+		const RadioPacket payload = {.type = BUTTON_TYPE, .ID = ButtonID};
 		radio.send((uint8_t*) &payload, sizeof(RadioPacket));
 
 		/* Wait for ACK */
 		uint32_t sentTime = HAL_GetTick();
-		constexpr uint32_t waitTime = 100 + BUTTON_ID % 50;
+		/* Randomize wait time to avoid continuous collisions */
+		const uint32_t waitTime = 100 + rand() % 64;
 		while(HAL_GetTick() - sentTime < waitTime) {
 			if(radio.gotPacket()) {
 				/* Received something, check for ACK */
 				RFM69::Packet packet = radio.getPacket();
 				if(packet.length >= sizeof(RadioPacket)) {
 					RadioPacket *received = (RadioPacket*) packet.data;
-					if(received->type == Ack && received->ID == BUTTON_ID) {
+					if(received->type == Ack && received->ID == ButtonID) {
 						/* This is an ACK */
 						ackReceived = true;
 						break;
