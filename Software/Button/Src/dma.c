@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * File Name          : dma.c
+  * Description        : This file provides code for the configuration
+  *                      of all the requested memory to memory DMA transfers.
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -35,58 +36,46 @@
   *
   ******************************************************************************
   */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
+#include "dma.h"
 
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END Includes */
+/* USER CODE END 0 */
 
-/* Private define ------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Configure DMA                                                              */
+/*----------------------------------------------------------------------------*/
 
-#define DIO3_Pin GPIO_PIN_1
-#define DIO3_GPIO_Port GPIOF
-#define DIO0_Pin GPIO_PIN_0
-#define DIO0_GPIO_Port GPIOA
-#define DIO0_EXTI_IRQn EXTI0_1_IRQn
-#define DIO1_Pin GPIO_PIN_1
-#define DIO1_GPIO_Port GPIOA
-#define DIO2_Pin GPIO_PIN_2
-#define DIO2_GPIO_Port GPIOA
-#define DIO4_Pin GPIO_PIN_3
-#define DIO4_GPIO_Port GPIOA
-#define DIO5_Pin GPIO_PIN_4
-#define DIO5_GPIO_Port GPIOA
-#define CS_RFM_Pin GPIO_PIN_0
-#define CS_RFM_GPIO_Port GPIOB
-#define BATTERY_SENSE_Pin GPIO_PIN_1
-#define BATTERY_SENSE_GPIO_Port GPIOB
-#define BUTTON_LED_Pin GPIO_PIN_12
-#define BUTTON_LED_GPIO_Port GPIOB
-#define SWITCH_Pin GPIO_PIN_13
-#define SWITCH_GPIO_Port GPIOB
-#define DISABLE_Pin GPIO_PIN_14
-#define DISABLE_GPIO_Port GPIOB
-#define ERROR_LED_Pin GPIO_PIN_12
-#define ERROR_LED_GPIO_Port GPIOA
+/* USER CODE BEGIN 1 */
 
-/* USER CODE BEGIN Private defines */
+/* USER CODE END 1 */
 
-/* USER CODE END Private defines */
+/** 
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
-void _Error_Handler(char *, int);
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+}
+
+/* USER CODE BEGIN 2 */
+
+/* USER CODE END 2 */
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}
-*/ 
+  */
 
-#endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

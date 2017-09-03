@@ -39,12 +39,13 @@
 #include "main.h"
 #include "stm32f0xx_hal.h"
 #include "adc.h"
+#include "dma.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "App.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -91,12 +92,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   MX_ADC_Init();
 
   /* USER CODE BEGIN 2 */
-
+  App_Start();
   /* USER CODE END 2 */
 
   /* Infinite loop */
