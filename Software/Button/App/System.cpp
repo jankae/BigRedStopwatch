@@ -4,8 +4,10 @@
 extern ADC_HandleTypeDef hadc;
 extern DMA_HandleTypeDef hdma_adc;
 
-static void blinkErrorLED(ErrorCode code) {
-	uint8_t blinks = (uint8_t) code;
+namespace System {
+
+static void blinkErrorLED(Error error) {
+	uint8_t blinks = (uint8_t) error;
 	while(blinks--) {
 		HAL_GPIO_WritePin(ERROR_LED_GPIO_Port, ERROR_LED_Pin, GPIO_PIN_SET);
 		HAL_Delay(200);
@@ -27,16 +29,16 @@ void Shutdown() {
 		/* We should never get here, as power should be already lost */
 		/* Enable power again to reliably blink error code */
 		HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_RESET);
-		blinkErrorLED(ErrTurnoff);
+		blinkErrorLED(Error::Turnoff);
 	}
 }
 
-void Shutdown(ErrorCode errorCode) {
-	blinkErrorLED(errorCode);
+void Shutdown(Error error) {
+	blinkErrorLED(error);
 	Shutdown();
 }
 
-uint16_t getBatteryVoltage() {
+uint16_t GetBatteryVoltage() {
 	constexpr uint16_t samples = 16;
 	uint16_t buffer[samples];
 	HAL_ADC_Start_DMA(&hadc, (uint32_t*) buffer, samples);
@@ -54,4 +56,6 @@ uint16_t getBatteryVoltage() {
 	/* Convert to voltage */
 	/* Reference is 3V, battery voltage sensed via 1:2 voltage divider */
 	return avg * 6000UL / 4096;
+}
+
 }

@@ -2,16 +2,20 @@
 
 #include <cstdint>
 
-enum ErrorCode : uint8_t {
-		ErrBatteryLow = 2,
-		ErrRadioInit = 3,
-		ErrNoAck = 4,
-		ErrTurnoff = 5,
+namespace System {
+
+enum class Error : uint8_t {
+		BatteryLow = 2,
+		RadioInit = 3,
+		NoAck = 4,
+		Turnoff = 5,
 };
 
 void Shutdown();
 
-void Shutdown(ErrorCode errorCode);
+void Shutdown(Error error);
 
-uint16_t getBatteryVoltage();
+uint16_t GetBatteryVoltage();
+
+}
 
