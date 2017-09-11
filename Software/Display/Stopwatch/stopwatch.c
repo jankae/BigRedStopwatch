@@ -2,7 +2,8 @@
 #include <stdint.h>
 
 #include "radio.h"
-#include "Switches.h"
+
+//#include "../System/Switches.h"
 
 #define HISTORY_ENTRIES		10
 

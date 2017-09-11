@@ -35,7 +35,8 @@ Drivers/STM32F0xx_HAL_Driver/Src \
 Drivers \
 Src \
 Radio \
-App
+App \
+System
 
 # firmware library path
 PERIFLIB_PATH = 
@@ -111,14 +112,15 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
 -IDrivers/CMSIS/Include \
 -IRadio \
--IApp
+-IApp \
+-ISystem
 
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
-CXXFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -std=c++11 -Wall -fpermissive -fno-exceptions -fno-rtti -fdata-sections -ffunction-sections
+CXXFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -std=c++11 -Wall -fno-exceptions -fno-rtti -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
