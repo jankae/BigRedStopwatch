@@ -22,7 +22,7 @@ TARGET = Display
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -O3
+OPT = -O2
 
 
 #######################################

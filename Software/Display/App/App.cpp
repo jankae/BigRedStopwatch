@@ -1,11 +1,11 @@
 #include "App.h"
 
-#include <cstdlib>
 #include "RFM69.h"
 #include "stm32f0xx_hal.h"
 #include "System.h"
 #include "Switches.h"
 #include "SevenSegment.h"
+#include "Flash.h"
 
 extern SPI_HandleTypeDef hspi1;
 
@@ -50,15 +50,30 @@ System::SevenSegment<4> Display(
 	DIGIT3_Pin,
 	DIGIT4_Pin });
 
+typedef uint32_t ButtonID_t;
+
+#define MAX_RADIO_IDS	5
+
+struct RadioIDs {
+	uint8_t numStart;
+	uint8_t numStop;
+	ButtonID_t startIDs[MAX_RADIO_IDS];
+	ButtonID_t stopIDs[MAX_RADIO_IDS];
+};
+
+constexpr uint32_t persistencePage = FLASH_BANK1_END - FLASH_PAGE_SIZE + 1;
+auto memory = System::Flash<RadioIDs>(persistencePage);
+
+static RadioIDs IDs;
+
 enum class PacketType : uint8_t {
 	Ack = 0x00,
-	Start = 0x01,
-	Stop = 0x02,
+	ButtonPress = 0x01,
 };
 
 struct RadioPacket {
 	PacketType type;
-	uint32_t ID;
+	ButtonID_t ID;
 } __attribute__((packed));
 
 void App_Start()
@@ -66,6 +81,13 @@ void App_Start()
 	if (!radio.init()) {
 		/* Failed to initialize radio */
 		System::Shutdown(System::Error::RadioInit);
+	}
+
+	if(memory.available()) {
+		IDs = memory.read();
+	} else {
+		IDs.numStart = 0;
+		IDs.numStop = 0;
 	}
 
 	radio.setMode(RFM69::Mode::Receive);
