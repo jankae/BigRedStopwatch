@@ -143,6 +143,10 @@ static inline char nibbleToHex(uint8_t n) {
 static void StateMachine(void) {
 	/* Stay within state machine until off switch is pressed */
 	while (OnOff.pressedFor() < 1000) {
+		if(System::GetBatteryVoltage(true) < 3500) {
+			/* Battery is low, abort */
+			System::Shutdown(System::Error::BatteryLow);
+		}
 
 		/* Check for start/stop events */
 		uint32_t startEvent = 0;
@@ -271,11 +275,6 @@ void App_Start()
 	}
 
 	radio.setMode(RFM69::Mode::Receive);
-
-	if(System::GetBatteryVoltage(true) < 3500) {
-		/* Battery is low, abort */
-		System::Shutdown(System::Error::BatteryLow);
-	}
 
 	/* Stopwatch application */
 	StateMachine();

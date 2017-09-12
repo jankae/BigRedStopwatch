@@ -1,9 +1,27 @@
 #include "System.h"
 #include "stm32f0xx_hal.h"
 #include "main.h"
+#include "SevenSegment.h"
 
 extern ADC_HandleTypeDef hadc;
 extern DMA_HandleTypeDef hdma_adc;
+
+extern System::SevenSegment<4> Display;
+
+static void showError(System::Error error){
+	switch(error) {
+	case System::Error::RadioInit:
+		Display.setString("ErrI");
+		break;
+	case System::Error::BatteryLow:
+		Display.setString("BAT");
+		break;
+	case System::Error::Turnoff:
+		Display.setString("ErrO");
+		break;
+	}
+	HAL_Delay(2000);
+}
 
 namespace System {
 
@@ -48,10 +66,12 @@ void Shutdown() {
 		/* We should never get here, as power should be already lost */
 		/* Enable power again to reliably blink error code */
 		HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_RESET);
+		showError(Error::Turnoff);
 	}
 }
 
 void Shutdown(Error error) {
+	showError(error);
 	Shutdown();
 }
 
