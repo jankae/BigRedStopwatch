@@ -19,8 +19,13 @@ public:
 	void update(void);
 	bool isPressed(void);
 	bool wasPressed(void);
+	bool shortPress(void);
+	bool longPress(void);
 	uint32_t pressedFor(void);
 	uint32_t wasPressedFor(void);
+	uint32_t pressTime(void);
+	uint32_t releaseTime(void);
+	void clear(void);
 private:
 	const GPIO_TypeDef* port;
 	const uint16_t pin;

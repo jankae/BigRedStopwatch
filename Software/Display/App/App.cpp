@@ -11,10 +11,10 @@ extern SPI_HandleTypeDef hspi1;
 
 RFM69 radio = RFM69(&hspi1, CS_RFM69_GPIO_Port, CS_RFM69_Pin);
 
-System::Switch SwitchOnOff(SWITCH_ONOFF_GPIO_Port, SWITCH_ONOFF_Pin);
-System::Switch SwitchStart(SWITCH1_GPIO_Port, SWITCH1_Pin);
-System::Switch SwitchStop(SWITCH2_GPIO_Port, SWITCH2_Pin);
-System::Switch SwitchHistory(SWITCH3_GPIO_Port, SWITCH3_Pin);
+System::Switch OnOff(SWITCH_ONOFF_GPIO_Port, SWITCH_ONOFF_Pin);
+System::Switch Start(SWITCH1_GPIO_Port, SWITCH1_Pin);
+System::Switch Stop(SWITCH2_GPIO_Port, SWITCH2_Pin);
+System::Switch Highscore(SWITCH3_GPIO_Port, SWITCH3_Pin);
 
 System::SevenSegment<4> Display(
 	/* Segment ports */
@@ -50,15 +50,18 @@ System::SevenSegment<4> Display(
 	DIGIT3_Pin,
 	DIGIT4_Pin });
 
-typedef uint32_t ButtonID_t;
+typedef uint16_t ButtonID_t;
 
-#define MAX_RADIO_IDS	5
+typedef struct {
+	ButtonID_t ID;
+	uint32_t lastEvent;
+} ButtonEntry_t;
+
+#define MAX_BUTTON_IDS	5
 
 struct RadioIDs {
-	uint8_t numStart;
-	uint8_t numStop;
-	ButtonID_t startIDs[MAX_RADIO_IDS];
-	ButtonID_t stopIDs[MAX_RADIO_IDS];
+	std::array<ButtonID_t, MAX_BUTTON_IDS> startIDs;
+	std::array<ButtonID_t, MAX_BUTTON_IDS> stopIDs;
 };
 
 constexpr uint32_t persistencePage = FLASH_BANK1_END - FLASH_PAGE_SIZE + 1;
@@ -76,6 +79,183 @@ struct RadioPacket {
 	ButtonID_t ID;
 } __attribute__((packed));
 
+enum class State : uint8_t {
+	IDLE,
+	RUNNING,
+};
+
+State state;
+uint32_t startTime;
+uint32_t stopTime;
+uint32_t displayChangeTime;
+uint32_t displayDuration;
+
+uint32_t bestTime = UINT32_MAX;
+
+static void setDisplayDuration(uint32_t ms) {
+	displayChangeTime = HAL_GetTick();
+	displayDuration = ms;
+}
+
+static void switchState(State s) {
+	state = s;
+	Start.clear();
+	Stop.clear();
+	Highscore.clear();
+	OnOff.clear();
+}
+
+static bool buttonInList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> list) {
+	for(uint8_t i=0;i<MAX_BUTTON_IDS;i++) {
+		if(list[i] == ID) {
+			return true;
+		}
+	}
+	/* ID not in list */
+	return false;
+}
+
+static void removeFromList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> list) {
+	for(uint8_t i=0;i<MAX_BUTTON_IDS;i++) {
+		if(list[i] == ID) {
+			list[i] = 0;
+		}
+	}
+}
+
+static bool addToList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> list) {
+	removeFromList(ID, list);
+	for(uint8_t i=0;i<MAX_BUTTON_IDS;i++) {
+		if(list[i] == 0) {
+			list[i] = ID;
+			return true;
+		}
+	}
+	/* List already full */
+	return false;
+}
+
+
+static inline char nibbleToHex(uint8_t n) {
+	return n < 10 ? n + '0' : n - 10 + 'A';
+}
+
+static void StateMachine(void) {
+	/* Stay within state machine until off switch is pressed */
+	while (OnOff.pressedFor() < 1000) {
+
+		/* Check for start/stop events */
+		uint32_t startEvent = 0;
+		uint32_t stopEvent = 0;
+		ButtonID_t pressedID = 0;
+		if (Start.shortPress()) {
+			startEvent = Start.pressTime();
+		} else if(Stop.shortPress()) {
+			stopEvent = Stop.pressTime();
+		} else if (radio.gotPacket()) {
+			/* Evaluate radio packet */
+			RFM69::Packet packet = radio.getPacket();
+			if (packet.length >= sizeof(RadioPacket)) {
+				RadioPacket *received = (RadioPacket*) packet.data;
+				if (received->type == PacketType::ButtonPress) {
+					/* Some button was pressed */
+					/* Send ACK */
+					RadioPacket ack = { .type = PacketType::Ack, .ID =
+							received->ID };
+					radio.send((uint8_t*) &ack, sizeof(RadioPacket));
+
+					pressedID = received->ID;
+					if(buttonInList(pressedID, IDs.startIDs)) {
+						startEvent = packet.receivedTimestamp - packet.sentTimestamp;
+					} else if(buttonInList(pressedID, IDs.stopIDs)) {
+						stopEvent = packet.receivedTimestamp - packet.sentTimestamp;
+					}
+				}
+			}
+		}
+
+		switch(state) {
+		case State::IDLE:
+			if(HAL_GetTick() - displayChangeTime > displayDuration) {
+				/* Clear old message from display */
+				Display.clear();
+			}
+			if (startEvent) {
+				startTime = startEvent;
+				switchState(State::RUNNING);
+			} else if(pressedID) {
+				char hexID[4] = {
+						nibbleToHex((pressedID & 0xF000) >> 12),
+						nibbleToHex((pressedID & 0x0F00) >> 8),
+						nibbleToHex((pressedID & 0x00F0) >> 4),
+						nibbleToHex((pressedID & 0x000F) >> 0),
+				};
+				/* Got a button press, check if it should be added to some list */
+				if (Start.pressedFor() > 500) {
+					removeFromList(pressedID, IDs.stopIDs);
+					if (addToList(pressedID, IDs.startIDs)) {
+						Display.setString(hexID);
+						setDisplayDuration(1500);
+					} else {
+						Display.setString("FULL");
+						setDisplayDuration(1500);
+					}
+				} else if (Start.pressedFor() > 500) {
+					removeFromList(pressedID, IDs.startIDs);
+					if (addToList(pressedID, IDs.stopIDs)) {
+						Display.setString(hexID);
+						setDisplayDuration(1500);
+					} else {
+						Display.setString("FULL");
+						setDisplayDuration(1500);
+					}
+				}
+			} else if(Highscore.shortPress()) {
+				Display.setNumber(bestTime, 3);
+				setDisplayDuration(3000);
+			} else if(Highscore.pressedFor() >= 500) {
+				Display.setString("DEL ");
+				if(Highscore.pressedFor() < 3000) {
+					/* Don't delete yet */
+					Display.blink();
+					setDisplayDuration(100);
+				} else {
+					/* Clear highscore */
+					bestTime = UINT32_MAX;
+					setDisplayDuration(2000);
+				}
+			} else if(Start.isPressed() && Stop.isPressed()) {
+				Display.setString("DEL ");
+				if(Start.pressedFor() < 3000 || Stop.pressedFor() < 3000) {
+					/* Don't delete yet */
+					Display.blink();
+					setDisplayDuration(100);
+				} else {
+					/* Delete button assignments */
+					IDs.startIDs.fill(0);
+					IDs.stopIDs.fill(0);
+					setDisplayDuration(2000);
+				}
+			}
+			break;
+		case State::RUNNING:
+			Display.setNumber(HAL_GetTick() - startTime, 3);
+			if (stopEvent) {
+				stopTime = stopEvent;
+				switchState(State::IDLE);
+				uint32_t runTime = stopTime - startTime;
+				Display.setNumber(runTime, 3);
+				if(runTime < bestTime) {
+					bestTime = runTime;
+					Display.blink();
+				}
+				setDisplayDuration(5000);
+			}
+			break;
+		}
+	}
+}
+
 void App_Start()
 {
 	if (!radio.init()) {
@@ -86,8 +266,8 @@ void App_Start()
 	if(memory.available()) {
 		IDs = memory.read();
 	} else {
-		IDs.numStart = 0;
-		IDs.numStop = 0;
+		IDs.startIDs.fill(0);
+		IDs.stopIDs.fill(0);
 	}
 
 	radio.setMode(RFM69::Mode::Receive);
@@ -97,11 +277,19 @@ void App_Start()
 		System::Shutdown(System::Error::BatteryLow);
 	}
 
-	System::BoosterON(true);
-	Display.setString("TEST");
-	HAL_Delay(3000);
-	System::BoosterON(false);
+	/* Stopwatch application */
+	StateMachine();
 
+	/* If button assignment has changed, store in Flash */
+	auto memIDs = memory.read();
+	if (!memory.available() || memIDs.startIDs != IDs.startIDs
+			|| memIDs.stopIDs != IDs.stopIDs) {
+		memory.write(IDs);
+	}
+
+	Display.setString("OFF ");
+	HAL_Delay(1000);
+	System::BoosterON(false);
 	System::Shutdown();
 }
 
@@ -114,10 +302,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 void HAL_SYSTICK_Callback(void) {
-	SwitchOnOff.update();
-	SwitchStart.update();
-	SwitchStop.update();
-	SwitchHistory.update();
+	OnOff.update();
+	Start.update();
+	Stop.update();
+	Highscore.update();
 
 	constexpr uint8_t displayUpdatePeriod = 2;
 	static uint8_t displayUpdateCnt = 0;

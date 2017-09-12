@@ -10,7 +10,7 @@ extern SPI_HandleTypeDef hspi1;
 
 RFM69 radio = RFM69(&hspi1, CS_RFM_GPIO_Port, CS_RFM_Pin);
 
-typedef uint32_t ButtonID_t;
+typedef uint16_t ButtonID_t;
 
 constexpr uint32_t persistencePage = FLASH_BANK1_END - FLASH_PAGE_SIZE + 1;
 auto memory = System::Flash<ButtonID_t>(persistencePage);

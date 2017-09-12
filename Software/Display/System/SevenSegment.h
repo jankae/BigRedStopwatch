@@ -2,6 +2,7 @@
 
 #include <array>
 #include "gpio.h"
+#include "System.h"
 #include <cmath>
 
 namespace System {
@@ -19,10 +20,11 @@ public:
 	, commonPins(cpins)
 	, segmentState()
 	, activeSegment(0)
+	, blinking(false)
 	{};
 
 	void update(void) {
-		/* Enable the old digit */
+		/* Disable the old digit */
 		commonPorts[activeSegment]->BRR |= commonPins[activeSegment];
 
 		activeSegment++;
@@ -40,13 +42,16 @@ public:
 				segmentPorts[i]->BRR |= segmentPins[i];
 			}
 		}
-		/* Enable the new digit */
-		commonPorts[activeSegment]->BSRR |= commonPins[activeSegment];
+		if (!blinking || HAL_GetTick() % blinkPeriod >= blinkPeriod / 2) {
+			/* Enable the new digit */
+			commonPorts[activeSegment]->BSRR |= commonPins[activeSegment];
+		}
 	}
 	void clear() {
 		segmentState.fill(0x00);
+		System::BoosterON(false);
 	}
-	void setString(std::string s) {
+	void setString(const char *s) {
 		uint8_t i;
 		for (i = 0; i < digits; i++) {
 			if (s[i] >= '0' && s[i] <= '9') {
@@ -63,6 +68,8 @@ public:
 				segmentState[i] = 0x00;
 			}
 		}
+		blinking = false;
+		System::BoosterON(true);
 	}
 	void setNumber(uint32_t num, uint8_t decimalDigits) {
 		/* Find dot position */
@@ -91,14 +98,21 @@ public:
 			/* Add dot at the dot position */
 			segmentState[decimalDigits] |= 0x80;
 		}
+		blinking = false;
+		System::BoosterON(true);
+	}
+	void blink(void) {
+		blinking = true;
 	}
 private:
+	static constexpr uint32_t blinkPeriod = 500;
 	const std::array<GPIO_TypeDef*, 8> segmentPorts;
 	const std::array<uint16_t, 8> segmentPins;
 	const std::array<GPIO_TypeDef*, digits> commonPorts;
 	const std::array<uint16_t, digits> commonPins;
 	std::array<uint8_t, digits> segmentState;
 	uint8_t activeSegment;
+	bool blinking;
 
 	static const uint8_t fontAlphabetical[26];
 	static const uint8_t fontNumbers[10];
