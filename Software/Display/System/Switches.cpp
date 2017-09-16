@@ -33,7 +33,6 @@ bool Switch::wasPressed(void) {
 
 bool Switch::shortPress(void) {
 	if(lastPressedFor > 0 && lastPressedFor < 500) {
-		clear();
 		return true;
 	} else {
 		return false;

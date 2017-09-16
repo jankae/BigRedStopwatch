@@ -97,16 +97,16 @@
 #define NRF24_CE_GPIO_Port GPIOA
 #define NRF24_IRQ_Pin GPIO_PIN_12
 #define NRF24_IRQ_GPIO_Port GPIOA
-#define SEGMENT_D_Pin GPIO_PIN_6
-#define SEGMENT_D_GPIO_Port GPIOF
+#define SEGMENT_C_Pin GPIO_PIN_6
+#define SEGMENT_C_GPIO_Port GPIOF
 #define CS_RFM69_Pin GPIO_PIN_7
 #define CS_RFM69_GPIO_Port GPIOF
-#define SEGMENT_E_Pin GPIO_PIN_15
-#define SEGMENT_E_GPIO_Port GPIOA
-#define SEGMENT_C_Pin GPIO_PIN_8
-#define SEGMENT_C_GPIO_Port GPIOB
-#define SEGMENT_DOT_Pin GPIO_PIN_9
-#define SEGMENT_DOT_GPIO_Port GPIOB
+#define SEGMENT_DOT_Pin GPIO_PIN_15
+#define SEGMENT_DOT_GPIO_Port GPIOA
+#define SEGMENT_D_Pin GPIO_PIN_8
+#define SEGMENT_D_GPIO_Port GPIOB
+#define SEGMENT_E_Pin GPIO_PIN_9
+#define SEGMENT_E_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

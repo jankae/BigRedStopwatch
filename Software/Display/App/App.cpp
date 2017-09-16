@@ -103,6 +103,7 @@ static void switchState(State s) {
 	Stop.clear();
 	Highscore.clear();
 	OnOff.clear();
+	System::print("Switching to state %d\n", (uint8_t) s);
 }
 
 static bool buttonInList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> list) {
@@ -115,7 +116,7 @@ static bool buttonInList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> l
 	return false;
 }
 
-static void removeFromList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> list) {
+static void removeFromList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> &list) {
 	for(uint8_t i=0;i<MAX_BUTTON_IDS;i++) {
 		if(list[i] == ID) {
 			list[i] = 0;
@@ -123,11 +124,13 @@ static void removeFromList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS>
 	}
 }
 
-static bool addToList(ButtonID_t ID, std::array<ButtonID_t, MAX_BUTTON_IDS> list) {
+static bool addToList(ButtonID_t ID,
+		std::array<ButtonID_t, MAX_BUTTON_IDS> &list) {
 	removeFromList(ID, list);
-	for(uint8_t i=0;i<MAX_BUTTON_IDS;i++) {
-		if(list[i] == 0) {
+	for (uint8_t i = 0; i < MAX_BUTTON_IDS; i++) {
+		if (list[i] == 0) {
 			list[i] = ID;
+			System::print("Added ID to list: %04x, spot %d\n", ID, i);
 			return true;
 		}
 	}
@@ -141,10 +144,13 @@ static inline char nibbleToHex(uint8_t n) {
 }
 
 static void StateMachine(void) {
+	state = State::IDLE;
+
 	/* Stay within state machine until off switch is pressed */
 	while (OnOff.pressedFor() < 1000) {
-		if(System::GetBatteryVoltage(true) < 3500) {
+		if(System::GetBatteryVoltage(true) < 3000) {
 			/* Battery is low, abort */
+			System::print("Battery voltage low: %lumV\n", System::GetBatteryVoltage(false));
 			System::Shutdown(System::Error::BatteryLow);
 		}
 
@@ -153,16 +159,22 @@ static void StateMachine(void) {
 		uint32_t stopEvent = 0;
 		ButtonID_t pressedID = 0;
 		if (Start.shortPress()) {
+			System::print("Start press\n");
 			startEvent = Start.pressTime();
+			Start.clear();
 		} else if(Stop.shortPress()) {
+			System::print("Stop press\n");
 			stopEvent = Stop.pressTime();
+			Stop.clear();
 		} else if (radio.gotPacket()) {
 			/* Evaluate radio packet */
+			System::print("Radio packet received\n");
 			RFM69::Packet packet = radio.getPacket();
 			if (packet.length >= sizeof(RadioPacket)) {
 				RadioPacket *received = (RadioPacket*) packet.data;
 				if (received->type == PacketType::ButtonPress) {
 					/* Some button was pressed */
+					System::print("Button press: %04x\n", received->ID);
 					/* Send ACK */
 					RadioPacket ack = { .type = PacketType::Ack, .ID =
 							received->ID };
@@ -170,8 +182,10 @@ static void StateMachine(void) {
 
 					pressedID = received->ID;
 					if(buttonInList(pressedID, IDs.startIDs)) {
+						System::print("Start packet\n");
 						startEvent = packet.receivedTimestamp - packet.sentTimestamp;
 					} else if(buttonInList(pressedID, IDs.stopIDs)) {
+						System::print("Stop packet\n");
 						stopEvent = packet.receivedTimestamp - packet.sentTimestamp;
 					}
 				}
@@ -204,7 +218,7 @@ static void StateMachine(void) {
 						Display.setString("FULL");
 						setDisplayDuration(1500);
 					}
-				} else if (Start.pressedFor() > 500) {
+				} else if (Stop.pressedFor() > 500) {
 					removeFromList(pressedID, IDs.startIDs);
 					if (addToList(pressedID, IDs.stopIDs)) {
 						Display.setString(hexID);
@@ -215,6 +229,7 @@ static void StateMachine(void) {
 					}
 				}
 			} else if(Highscore.shortPress()) {
+				Highscore.clear();
 				Display.setNumber(bestTime, 3);
 				setDisplayDuration(3000);
 			} else if(Highscore.pressedFor() >= 500) {
@@ -262,17 +277,48 @@ static void StateMachine(void) {
 
 void App_Start()
 {
+	System::print("Application start\n");
+
 	if (!radio.init()) {
 		/* Failed to initialize radio */
+		System::print("Radio initialization failed\n");
 		System::Shutdown(System::Error::RadioInit);
 	}
+	System::print("Radio initialized\n");
 
 	if(memory.available()) {
+		System::print("Reading button IDs from memory...\n");
 		IDs = memory.read();
+#if 1
+		System::print("StartIDs:");
+		for (auto i = IDs.startIDs.begin(); i != IDs.startIDs.end(); i++) {
+			if (*i)
+				System::print(" %04x", *i);
+		}
+		System::print("\nStopIDs:");
+		for (auto i = IDs.stopIDs.begin(); i != IDs.stopIDs.end(); i++) {
+			if (*i)
+				System::print(" %04x", *i);
+		}
+		System::print("\n");
+#endif
 	} else {
+		System::print("No button ID information available\n");
 		IDs.startIDs.fill(0);
 		IDs.stopIDs.fill(0);
 	}
+
+	uint32_t battery = System::GetBatteryVoltage(true);
+	uint32_t booster = System::GetBoosterVoltage(false);
+
+	System::print("Battery: %lumV, Booster: %lumV\n", battery, booster);
+	if(battery < 3300) {
+		System::print("Shutting down due to low battery\n");
+		System::Shutdown(System::Error::BatteryLow);
+	}
+
+	Display.setString("On  ");
+	HAL_Delay(1000);
 
 	radio.setMode(RFM69::Mode::Receive);
 
@@ -283,12 +329,12 @@ void App_Start()
 	auto memIDs = memory.read();
 	if (!memory.available() || memIDs.startIDs != IDs.startIDs
 			|| memIDs.stopIDs != IDs.stopIDs) {
+		System::print("Writing button IDs to flash\n");
 		memory.write(IDs);
 	}
 
 	Display.setString("OFF ");
 	HAL_Delay(1000);
-	System::BoosterON(false);
 	System::Shutdown();
 }
 

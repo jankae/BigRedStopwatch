@@ -54,24 +54,26 @@ public:
 	void setString(const char *s) {
 		uint8_t i;
 		for (i = 0; i < digits; i++) {
+			uint8_t d = digits - i - 1;
 			if (s[i] >= '0' && s[i] <= '9') {
 				/* It is a digit */
-				segmentState[i] = fontNumbers[s[i] - '0'];
+				segmentState[d] = fontNumbers[s[i] - '0'];
 			} else if (s[i] >= 'A' && s[i] <= 'Z') {
 				/* It is an upper case digit */
-				segmentState[i] = fontAlphabetical[s[i] - 'A'];
+				segmentState[d] = fontAlphabetical[s[i] - 'A'];
 			} else if (s[i] >= 'a' && s[i] <= 'z') {
 				/* It is an lower case digit */
-				segmentState[i] = fontAlphabetical[s[i] - 'a'];
+				segmentState[d] = fontAlphabetical[s[i] - 'a'];
 			} else {
 				/* no segment configuration for this character */
-				segmentState[i] = 0x00;
+				segmentState[d] = 0x00;
 			}
 		}
 		blinking = false;
 		System::BoosterON(true);
 	}
 	void setNumber(uint32_t num, uint8_t decimalDigits) {
+		std::array<uint8_t, digits> lSegments;
 		/* Find dot position */
 		constexpr uint32_t digitlimit = pow(10, digits);
 		uint32_t limit = digitlimit;
@@ -90,14 +92,15 @@ public:
 		}
 
 		for (uint8_t i = 0; i < digits; i++) {
-			segmentState[i] = fontNumbers[num % 10];
+			lSegments[i] = fontNumbers[num % 10];
 			num /= 10;
 		}
 
 		if (decimalDigits) {
 			/* Add dot at the dot position */
-			segmentState[decimalDigits] |= 0x80;
+			lSegments[decimalDigits] |= 0x80;
 		}
+		segmentState = lSegments;
 		blinking = false;
 		System::BoosterON(true);
 	}
@@ -122,7 +125,7 @@ template<uint8_t digits> constexpr uint8_t SevenSegment<digits>::fontAlphabetica
 		0x77,				/* A */
 		0x7C,				/* B */
 		0x39,				/* C */
-		0x7E,				/* D */
+		0x7C,				/* D */
 		0x79,				/* E */
 		0x71,				/* F */
 		0x3D,				/* G */
@@ -132,11 +135,11 @@ template<uint8_t digits> constexpr uint8_t SevenSegment<digits>::fontAlphabetica
 		0x00,				/* K */
 		0x38,				/* L */
 		0x00,				/* M */
-		0x00,				/* N */
-		0x7C,				/* O */
+		0x54,				/* N */
+		0x5C,				/* O */
 		0x73,				/* P */
-		0x00,				/* Q */
-		0x70,				/* R */
+		0x67,				/* Q */
+		0x50,				/* R */
 		0x6D,				/* S */
 		0x78,				/* T */
 		0x3E,				/* U */
@@ -144,13 +147,13 @@ template<uint8_t digits> constexpr uint8_t SevenSegment<digits>::fontAlphabetica
 		0x00,				/* W */
 		0x00,				/* X */
 		0x6E,				/* Y */
-		0x1B,				/* Z */
+		0x5B,				/* Z */
 };
 
 template<uint8_t digits> constexpr uint8_t SevenSegment<digits>::fontNumbers[] = {
-		0xCF,				/* 0 */
+		0x3F,				/* 0 */
 		0x06,				/* 1 */
-		0x1B,				/* 2 */
+		0x5B,				/* 2 */
 		0x4F,				/* 3 */
 		0x66,				/* 4 */
 		0x6D,				/* 5 */

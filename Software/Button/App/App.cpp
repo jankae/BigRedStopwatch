@@ -26,15 +26,24 @@ struct RadioPacket {
 } __attribute__((packed));
 
 void App_Start() {
+
+	System::print("Application start\n");
+
 	if (!radio.init()) {
 		/* Failed to initialize radio */
+		System::print("Radio initialization failed\n");
 		System::Shutdown(System::Error::RadioInit);
 	}
+	System::print("Radio initialized\n");
 
 	radio.setMode(RFM69::Mode::Receive);
 
-	if (System::GetBatteryVoltage() < 3500) {
+	uint32_t battery = System::GetBatteryVoltage();
+
+	System::print("Battery: %lumV\n", battery);
+	if (battery < 3300) {
 		/* Battery is low, abort */
+		System::print("Shutting down due to low battery\n");
 		System::Shutdown(System::Error::BatteryLow);
 	}
 
@@ -42,9 +51,13 @@ void App_Start() {
 	if (memory.available()) {
 		/* Read random ID from memory */
 		ButtonID = memory.read();
+		System::print("Button ID read from memory: %04x\n", ButtonID);
 	} else {
 		/* No ID yet, generate one from the RSSI noise */
-		ButtonID = radio.getRandom();
+		do {
+			ButtonID = radio.getRandom();
+		} while (ButtonID == 0);
+		System::print("Button ID generated: %04x\n", ButtonID);
 		memory.write(ButtonID);
 	}
 	System::Random rng;
@@ -53,6 +66,7 @@ void App_Start() {
 	bool ackReceived = false;
 	uint8_t remainingAttempts = 5;
 	while (remainingAttempts && !ackReceived) {
+		System::print("Sending packet %d\n", 5 - remainingAttempts);
 		/* Create button packet */
 		const RadioPacket payload = { .type = PacketType::ButtonPress, .ID =
 				ButtonID };
@@ -67,20 +81,26 @@ void App_Start() {
 				/* Received something, check for ACK */
 				RFM69::Packet packet = radio.getPacket();
 				if (packet.length >= sizeof(RadioPacket)) {
+					System::print("Received a packet\n");
 					RadioPacket *received = (RadioPacket*) packet.data;
 					if (received->type == PacketType::Ack
 							&& received->ID == ButtonID) {
 						/* This is an ACK */
+						System::print("Received ACK\n");
 						ackReceived = true;
 						break;
 					}
 				}
 			}
 		}
+		remainingAttempts--;
 	}
+
+	radio.setMode(RFM69::Mode::Standby);
 
 	if (!ackReceived) {
 		/* Failed to reliable send packet */
+		System::print("Couldn't get an ACK\n");
 		System::Shutdown(System::Error::NoAck);
 	}
 	/* All done, shutdown without error */

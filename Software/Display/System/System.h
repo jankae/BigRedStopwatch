@@ -19,5 +19,7 @@ void BoosterON(bool enable);
 uint16_t GetBatteryVoltage(bool forceUpdate);
 uint16_t GetBoosterVoltage(bool forceUpdate);
 
+void print(const char *fmt, ...);
+
 }
 

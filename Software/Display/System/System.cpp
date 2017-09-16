@@ -2,9 +2,11 @@
 #include "stm32f0xx_hal.h"
 #include "main.h"
 #include "SevenSegment.h"
+#include <cstdarg>
 
 extern ADC_HandleTypeDef hadc;
 extern DMA_HandleTypeDef hdma_adc;
+extern UART_HandleTypeDef huart1;
 
 extern System::SevenSegment<4> Display;
 
@@ -32,7 +34,7 @@ static void sampleADC() {
 	uint16_t buffer[samples * 2];
 	HAL_ADC_Start_DMA(&hadc, (uint32_t*) buffer, samples * 2);
 	/* wait for ADC sampling to finish */
-	while (HAL_DMA_GetState(&hdma_adc) & HAL_DMA_STATE_BUSY)
+	while (HAL_DMA_GetState(&hdma_adc) == HAL_DMA_STATE_BUSY)
 		;
 
 	/* Calculate average */
@@ -54,18 +56,20 @@ static void sampleADC() {
 }
 
 void Shutdown() {
+	print("Shutting down...\n");
 	/* Wait for the button to be released */
 	while (!HAL_GPIO_ReadPin(SWITCH_ONOFF_GPIO_Port, SWITCH_ONOFF_Pin))
 		;
+	Display.clear();
 
 	while (1) {
 		/* Cut power to itself */
-		HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_RESET);
 
 		HAL_Delay(1000);
 		/* We should never get here, as power should be already lost */
 		/* Enable power again to reliably blink error code */
-		HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_SET);
 		showError(Error::Turnoff);
 	}
 }
@@ -93,6 +97,19 @@ uint16_t GetBoosterVoltage(bool forceUpdate) {
 	if(forceUpdate)
 		sampleADC();
 	return booster;
+}
+
+void print(const char *fmt, ...) {
+#if DEBUG
+	char buffer[100];
+
+	va_list arp;
+	va_start(arp, fmt);
+	uint16_t length = vsnprintf(buffer, sizeof(buffer), fmt, arp);
+	va_end(arp);
+
+	HAL_UART_Transmit(&huart1, (uint8_t*) buffer, length, 1000);
+#endif
 }
 
 }

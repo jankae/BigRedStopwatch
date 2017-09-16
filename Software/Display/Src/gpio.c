@@ -69,19 +69,19 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(DISABLE_GPIO_Port, DISABLE_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, BOOST_ENABLE_Pin|DIGIT3_Pin|DIGIT4_Pin|DIGIT2_Pin 
                           |DIGIT1_Pin|SEGMENT_G_Pin|CS_NRF24_Pin|NRF24_CE_Pin 
-                          |SEGMENT_E_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SEGMENT_F_Pin|SEGMENT_A_Pin|SEGMENT_B_Pin|SEGMENT_C_Pin 
                           |SEGMENT_DOT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, SEGMENT_D_Pin|CS_RFM69_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, SEGMENT_F_Pin|SEGMENT_A_Pin|SEGMENT_B_Pin|SEGMENT_D_Pin 
+                          |SEGMENT_E_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOF, SEGMENT_C_Pin|CS_RFM69_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = DISABLE_Pin;
@@ -106,7 +106,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : PAPin PAPin PAPin PAPin 
                            PAPin PAPin PAPin */
   GPIO_InitStruct.Pin = DIGIT3_Pin|DIGIT4_Pin|DIGIT2_Pin|DIGIT1_Pin 
-                          |SEGMENT_G_Pin|CS_NRF24_Pin|SEGMENT_E_Pin;
+                          |SEGMENT_G_Pin|CS_NRF24_Pin|SEGMENT_DOT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -114,8 +114,8 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
                            PBPin */
-  GPIO_InitStruct.Pin = SEGMENT_F_Pin|SEGMENT_A_Pin|SEGMENT_B_Pin|SEGMENT_C_Pin 
-                          |SEGMENT_DOT_Pin;
+  GPIO_InitStruct.Pin = SEGMENT_F_Pin|SEGMENT_A_Pin|SEGMENT_B_Pin|SEGMENT_D_Pin 
+                          |SEGMENT_E_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -146,7 +146,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PFPin PFPin */
-  GPIO_InitStruct.Pin = SEGMENT_D_Pin|CS_RFM69_Pin;
+  GPIO_InitStruct.Pin = SEGMENT_C_Pin|CS_RFM69_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;

@@ -17,5 +17,7 @@ void Shutdown(Error error);
 
 uint16_t GetBatteryVoltage();
 
+void print(const char *fmt, ...);
+
 }
 
