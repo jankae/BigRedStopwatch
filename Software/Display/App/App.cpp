@@ -87,8 +87,13 @@ enum class State : uint8_t {
 State state;
 uint32_t startTime;
 uint32_t stopTime;
+/* Last time the display content was changed */
 uint32_t displayChangeTime;
+/* Duration of the currently displayed content */
 uint32_t displayDuration;
+/* Auto-turnoff after 10 minutes to save energy */
+uint32_t lastAction;
+constexpr uint32_t autoTurnOffTime = 10UL*60*1000;
 
 uint32_t bestTime = UINT32_MAX;
 
@@ -138,6 +143,9 @@ static bool addToList(ButtonID_t ID,
 	return false;
 }
 
+static inline void someAction(void) {
+	lastAction = HAL_GetTick();
+}
 
 static inline char nibbleToHex(uint8_t n) {
 	return n < 10 ? n + '0' : n - 10 + 'A';
@@ -145,9 +153,11 @@ static inline char nibbleToHex(uint8_t n) {
 
 static void StateMachine(void) {
 	state = State::IDLE;
+	lastAction = 0;
 
 	/* Stay within state machine until off switch is pressed */
-	while (OnOff.pressedFor() < 1000) {
+	while (OnOff.pressedFor() < 1000 && HAL_GetTick() - lastAction < autoTurnOffTime) {
+		// TODO adjust
 		if(System::GetBatteryVoltage(true) < 3000) {
 			/* Battery is low, abort */
 			System::print("Battery voltage low: %lumV\n", System::GetBatteryVoltage(false));
@@ -201,6 +211,7 @@ static void StateMachine(void) {
 			if (startEvent) {
 				startTime = startEvent;
 				switchState(State::RUNNING);
+				someAction();
 			} else if(pressedID) {
 				char hexID[4] = {
 						nibbleToHex((pressedID & 0xF000) >> 12),
@@ -210,6 +221,7 @@ static void StateMachine(void) {
 				};
 				/* Got a button press, check if it should be added to some list */
 				if (Start.pressedFor() > 500) {
+					someAction();
 					removeFromList(pressedID, IDs.stopIDs);
 					if (addToList(pressedID, IDs.startIDs)) {
 						Display.setString(hexID);
@@ -219,6 +231,7 @@ static void StateMachine(void) {
 						setDisplayDuration(1500);
 					}
 				} else if (Stop.pressedFor() > 500) {
+					someAction();
 					removeFromList(pressedID, IDs.startIDs);
 					if (addToList(pressedID, IDs.stopIDs)) {
 						Display.setString(hexID);
@@ -232,7 +245,9 @@ static void StateMachine(void) {
 				Highscore.clear();
 				Display.setNumber(bestTime, 3);
 				setDisplayDuration(3000);
+				someAction();
 			} else if(Highscore.pressedFor() >= 500) {
+				someAction();
 				Display.setString("DEL ");
 				if(Highscore.pressedFor() < 3000) {
 					/* Don't delete yet */
@@ -244,6 +259,7 @@ static void StateMachine(void) {
 					setDisplayDuration(2000);
 				}
 			} else if(Start.isPressed() && Stop.isPressed()) {
+				someAction();
 				Display.setString("DEL ");
 				if(Start.pressedFor() < 3000 || Stop.pressedFor() < 3000) {
 					/* Don't delete yet */
@@ -260,6 +276,7 @@ static void StateMachine(void) {
 		case State::RUNNING:
 			Display.setNumber(HAL_GetTick() - startTime, 3);
 			if (stopEvent) {
+				someAction();
 				stopTime = stopEvent;
 				switchState(State::IDLE);
 				uint32_t runTime = stopTime - startTime;
@@ -268,7 +285,7 @@ static void StateMachine(void) {
 					bestTime = runTime;
 					Display.blink();
 				}
-				setDisplayDuration(5000);
+				setDisplayDuration(8000);
 			}
 			break;
 		}
@@ -319,6 +336,12 @@ void App_Start()
 
 	Display.setString("On  ");
 	HAL_Delay(1000);
+
+	for (uint8_t i = 0; i < 10; i++) {
+		battery = System::GetBatteryVoltage(true);
+		Display.setNumber(battery, 3);
+		HAL_Delay(300);
+	}
 
 	radio.setMode(RFM69::Mode::Receive);
 

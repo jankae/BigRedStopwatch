@@ -104,7 +104,7 @@ void App_Start() {
 		System::Shutdown(System::Error::NoAck);
 	}
 	/* All done, shutdown without error */
-	System::Shutdown();
+	System::Shutdown(System::Error::None);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {

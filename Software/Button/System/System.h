@@ -5,6 +5,7 @@
 namespace System {
 
 enum class Error : uint8_t {
+		None = 1,
 		BatteryLow = 2,
 		RadioInit = 3,
 		NoAck = 4,
