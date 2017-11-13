@@ -273,7 +273,9 @@ static void StateMachine(void) {
 				}
 			}
 			break;
-		case State::RUNNING:
+		case State::RUNNING: {
+			static uint8_t abortCnt = 0;
+			static uint32_t lastAbortCntChange = 0;
 			Display.setNumber(HAL_GetTick() - startTime, 3);
 			if (stopEvent) {
 				someAction();
@@ -286,7 +288,21 @@ static void StateMachine(void) {
 					Display.blink();
 				}
 				setDisplayDuration(8000);
+			} else if(startEvent) {
+				/* Abort timer in case of multiple start button presses */
+				abortCnt++;
+				lastAbortCntChange = HAL_GetTick();
+				if(abortCnt >= 3) {
+					switchState(State::IDLE);
+					abortCnt = 0;
+				}
+			} else if(HAL_GetTick() - lastAbortCntChange > 3000) {
+				if(abortCnt) {
+					abortCnt--;
+				}
+				lastAbortCntChange = HAL_GetTick();
 			}
+		}
 			break;
 		}
 	}
